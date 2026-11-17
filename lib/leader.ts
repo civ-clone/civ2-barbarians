@@ -6,11 +6,14 @@ import Player from '@civ-clone/core-player/Player';
 import Stowed from '@civ-clone/base-unit-action-embark/Busy/Stowed';
 import Unit from '@civ-clone/core-unit/Unit';
 
-export type LeaderGame = Pick<Game, 'cities' | 'transports' | 'units'>;
+export type LeaderGame = Pick<Game, 'cities' | 'units'>;
 
-/** Whether `unit` is aboard a ship: stowed, or carried by a transport. */
-export const aboard = (game: Pick<Game, 'transports'>, unit: Unit): boolean =>
-  unit.busy() instanceof Stowed || game.transports.hasUnit(unit);
+/**
+ * Whether `unit` sleeps aboard a ship (`Stowed`), as a raid's horde does from the start (`game.cpp` 1542). A unit
+ *  carried but awake (its escorts landed, the ship woken near land) is at sea, and moves.
+ */
+export const asleepAboard = (unit: Unit): boolean =>
+  unit.busy() instanceof Stowed;
 
 /** A leader at sea leaves less than this far from a city. */
 export const LEADER_SEA_DISTANCE = 3;
@@ -24,10 +27,10 @@ export const leaderGivesUp = (turn: number, fromCity: number): boolean =>
 
 /**
  * Whether the barbarian leader `leader` leaves the map this turn (`ai_barb_leader`, `ai.cpp` 1885-1916):
- * - aboard a ship he stays: the original's raiders sleep at sea (`game.cpp` 1542), so `ai_barb_leader` never runs for
- *   them;
+ * - asleep aboard a ship he stays: the original's raiders sleep at sea (`game.cpp` 1542), so `ai_barb_leader` never
+ *   runs for them;
  * - on land with others on his square and fewer than 2 of his role among them, he stays with them;
- * - at sea, less than 3 from a city, he leaves;
+ * - awake at sea (carried by a ship that has woken him), less than 3 from a city, he leaves;
  * - on land, with the nearest of his own units less than 4 away and of a fighting role, he follows it;
  * - otherwise on land, `leaderGivesUp` from the nearest city (always, with no city left), he leaves.
  */
@@ -44,7 +47,7 @@ export const leaderLeaves = (
     fromCity = nearest === null ? Infinity : nearest.distance,
     player = leader.player();
 
-  if (aboard(game, leader)) {
+  if (asleepAboard(leader)) {
     return false;
   }
 

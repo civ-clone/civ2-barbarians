@@ -1,6 +1,8 @@
 import { Diplomat, Swordman, Trireme } from '@civ-clone/civ2-unit/Units';
 import { leaderGivesUp, leaderLeaves } from '../lib/leader';
+import NavalTransport from '@civ-clone/base-unit-type-naval-transport/NavalTransport';
 import Player from '@civ-clone/core-player/Player';
+import Stowed from '@civ-clone/base-unit-action-embark/Busy/Stowed';
 import Unit from '@civ-clone/core-unit/Unit';
 import barbarianPlayer from '../lib/barbarianPlayer';
 import { expect } from 'chai';
@@ -53,16 +55,29 @@ describe('leaders', (): void => {
     expect(leaderLeaves(game, close, 7)).false;
     expect(leaderLeaves(game, close, 0)).true;
 
-    // At sea, aboard a ship: he leaves less than 3 from a city, whatever the turn.
+    // At sea, carried by a ship: asleep (as a raid's horde starts), he stays; awake, he leaves less than 3 from a city,
+    //  whatever the turn.
     city(player(), world.get(20, 10));
-    make(Trireme, 20, 12);
-    make(Trireme, 20, 22);
 
-    const nearShore = make(Diplomat, 20, 12),
-      offshore = make(Diplomat, 20, 22);
+    const ship = make(Trireme, 20, 12) as unknown as NavalTransport,
+      farShip = make(Trireme, 20, 22) as unknown as NavalTransport,
+      load = (onto: NavalTransport): Unit => {
+        const leader = new Diplomat(null, barbarians, onto.tile(), game.rules);
+
+        expect(onto.stow(leader, onto.tile())).true;
+
+        return leader;
+      },
+      asleep = load(ship),
+      awake = load(ship),
+      offshore = load(farShip);
+
+    asleep.setBusy(new Stowed());
 
     expect(world.get(20, 12).isWater()).true;
-    expect(leaderLeaves(game, nearShore, 7)).true;
+    expect(ship.cargo()).include(asleep).include(awake);
+    expect(leaderLeaves(game, asleep, 7)).false;
+    expect(leaderLeaves(game, awake, 7)).true;
     expect(leaderLeaves(game, offshore, 0)).false;
   });
 });

@@ -51,8 +51,8 @@ Each rule's id is in `RuleIds`.
   Riflemen or Cavalry with Armor's advance, Fanatics or Partisans with Guerrilla Warfare.
 - **Ransom** (`RANSOM_RULE`): an attacker that beats a barbarian leader (a unit of a role above 4) defending is paid
   a × 50 gold, through base-barbarians' `payRansom` (`barbarians:ransom`).
-- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): never while aboard a ship (the
-  original's raiders sleep at sea); at sea otherwise less than 3 from a city; on land, unless with an escort or within 4
+- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): never while asleep aboard a ship
+  (`Stowed`, as a raid's horde starts: the original's raiders sleep at sea); awake at sea, less than 3 from a city; on land, unless with an escort or within 4
   of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
   The client's `LeadsGroup` (a role above 4) and `LeavesMap` (2 rows from the top or bottom edge, as rows, not scaled)
   rules are `LEADS_GROUP_RULE` and `LEAVES_MAP_RULE`.
@@ -78,7 +78,7 @@ Each rule's id is in `RuleIds`.
 - The original reads the strongest human's government through a power rank used as a civilization number
   (`civs[game.best_human_rank]`); players here have no numbers, so the strongest human's government is read.
 - The leader's departure is checked as the barbarians' turn starts rather than as each moves. The original's ship wakes
-  its cargo next to land and the leader may then leave at sea; the client lands a horde straight away, from up to 8
-  squares from a city, so a leader leaves only once ashore.
+  its cargo next to land, and an awake leader at sea leaves near a city; the client lands a horde straight away, from up
+  to 8 squares from a city, so a leader woken but left aboard (his escorts landed) leaves that way.
 - The original's barbarian ships give up after 30 turns or with fewer than 2 aboard, and barbarians demand money from a
   person's undefended city (`ai_barb_demand_ransom`): not yet (the client's).
