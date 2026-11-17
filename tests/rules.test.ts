@@ -9,7 +9,15 @@ import {
   Swordman,
   Trireme,
 } from '@civ-clone/civ2-unit/Units';
-import { Conscription, Explosives } from '@civ-clone/civ2-science/Advances';
+import {
+  Conscription,
+  Explosives,
+  MobileWarfare,
+} from '@civ-clone/civ2-science/Advances';
+import { Game } from '@civ-clone/core-game';
+import Tile from '@civ-clone/core-world/Tile';
+import TurnStart from '@civ-clone/core-player/Rules/TurnStart';
+import { seaRaid, uprisingSkipped } from '../lib/seaRaid';
 import { barbarianBuild, firstUnit, upgradeOf } from '../lib/cityBuild';
 import {
   Chieftain,
@@ -233,5 +241,129 @@ describe('the turn', (): void => {
     }
 
     expect(game.units.entries().length).equal(0);
+  });
+});
+
+describe('the turn, once raids are under way', (): void => {
+  // King, the second level: raids as turns 72, 80 and 88 start.
+  const play = (game: Game, until: number): Turn => {
+    const turn = new Turn();
+
+    while (turn.value() < until) {
+      turn.increment();
+      game.rules.process(Start, turn);
+    }
+
+    return turn;
+  };
+
+  it("stops raiding once anyone knows Armor's advance", async (): Promise<void> => {
+    const { city, game, player, world } = await setUp([
+        '#'.repeat(20),
+        ...ocean().slice(1),
+      ]),
+      raids: number[] = [],
+      someone = player(false);
+
+    city(someone, world.get(3, 0));
+    game.difficulty.set(King);
+    game.engine.on('barbarians:raiders-at-sea', () => raids.push(1));
+    game.playerResearch.getByPlayer(someone).addAdvance(MobileWarfare);
+
+    play(game, 90);
+
+    expect(raids.length).equal(0);
+  });
+
+  it("skips the turn's uprising when the raid finds no square", async (): Promise<void> => {
+    // No sea at all: the raid on turn 72 finds no square, so no uprising is tried; on turn 73 one is.
+    const { city, game, gold, player, world } = await setUp(
+        new Array(24).fill('#'.repeat(30))
+      ),
+      person = player(true),
+      uprisings: number[] = [];
+
+    city(person, world.get(4, 10), 8);
+    gold(person, 100000);
+    game.difficulty.set(King);
+
+    const turn = play(game, 71);
+
+    game.engine.on('barbarians:uprising', () => uprisings.push(turn.value()));
+
+    turn.increment();
+    game.rules.process(Start, turn);
+
+    expect(turn.value()).equal(72);
+    expect(uprisingSkipped(game, 72)).true;
+    expect(uprisings).eql([]);
+
+    turn.increment();
+    game.rules.process(Start, turn);
+
+    expect(uprisingSkipped(game, 73)).false;
+    expect(uprisings).eql([73]);
+  });
+});
+
+describe('leaders leaving, as the barbarians move', (): void => {
+  it("takes off a lone leader far from cities, only on the barbarians' turn", async (): Promise<void> => {
+    const { city, game, player, world } = await setUp(
+        new Array(12).fill('#'.repeat(30))
+      ),
+      someone = player(),
+      barbarians = barbarianPlayer(game, world),
+      leader = new Diplomat(null, barbarians, world.get(20, 6), game.rules);
+
+    city(someone, world.get(2, 6));
+    game.turn.increment();
+
+    game.rules.process(TurnStart, someone);
+
+    expect(leader.destroyed()).false;
+
+    game.rules.process(TurnStart, barbarians);
+
+    expect(leader.destroyed()).true;
+  });
+
+  it('leaves a leader aboard a ship near a city, who can still be ransomed', async (): Promise<void> => {
+    const { city, game, player, world } = await setUp([
+        ...new Array(6).fill('#'.repeat(20)),
+        ...new Array(14).fill('.'.repeat(20)),
+      ]),
+      someone = player(),
+      raids: [Player, Unit, Tile][] = [];
+
+    city(someone, world.get(5, 5));
+    game.engine.on('barbarians:raiders-at-sea', (...args: any[]) =>
+      raids.push(args as [Player, Unit, Tile])
+    );
+
+    // The raid's square: the first draws give (5, 7), 1 from the city.
+    (game as any).rng = scripted(
+      ...[10, 4], // x 10 (half columns), y 4 + 3 = 7: (5, 7).
+      0 // the ship a veteran.
+    ).rng;
+
+    expect(seaRaid(game, world, 2, 100)).true;
+
+    const [[barbarians, ship, tile]] = raids,
+      [leader] = (ship as any).cargo() as Unit[];
+
+    expect([tile.x(), tile.y()]).eql([5, 7]);
+    expect(leader).instanceOf(Diplomat);
+
+    game.rules.process(TurnStart, barbarians);
+
+    expect(leader.destroyed()).false;
+
+    const attacker = new Swordman(null, someone, world.get(5, 5), game.rules);
+
+    game.rules.process(Defeated, leader, attacker, attackedBy(attacker));
+
+    expect(
+      game.playerTreasuries.getByPlayerAndType(someone, Gold).value()
+    ).equal(100);
   });
 });

@@ -3,9 +3,14 @@ import { isLeader, roleOf } from './units';
 import City from '@civ-clone/core-city/City';
 import { Game } from '@civ-clone/core-game';
 import Player from '@civ-clone/core-player/Player';
+import Stowed from '@civ-clone/base-unit-action-embark/Busy/Stowed';
 import Unit from '@civ-clone/core-unit/Unit';
 
-export type LeaderGame = Pick<Game, 'cities' | 'units'>;
+export type LeaderGame = Pick<Game, 'cities' | 'transports' | 'units'>;
+
+/** Whether `unit` is aboard a ship: stowed, or carried by a transport. */
+export const aboard = (game: Pick<Game, 'transports'>, unit: Unit): boolean =>
+  unit.busy() instanceof Stowed || game.transports.hasUnit(unit);
 
 /** A leader at sea leaves less than this far from a city. */
 export const LEADER_SEA_DISTANCE = 3;
@@ -19,6 +24,8 @@ export const leaderGivesUp = (turn: number, fromCity: number): boolean =>
 
 /**
  * Whether the barbarian leader `leader` leaves the map this turn (`ai_barb_leader`, `ai.cpp` 1885-1916):
+ * - aboard a ship he stays: the original's raiders sleep at sea (`game.cpp` 1542), so `ai_barb_leader` never runs for
+ *   them;
  * - on land with others on his square and fewer than 2 of his role among them, he stays with them;
  * - at sea, less than 3 from a city, he leaves;
  * - on land, with the nearest of his own units less than 4 away and of a fighting role, he follows it;
@@ -36,6 +43,10 @@ export const leaderLeaves = (
     nearest = nearestCity(tile, cities),
     fromCity = nearest === null ? Infinity : nearest.distance,
     player = leader.player();
+
+  if (aboard(game, leader)) {
+    return false;
+  }
 
   if (tile.isWater()) {
     return fromCity < LEADER_SEA_DISTANCE;

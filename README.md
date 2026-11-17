@@ -51,8 +51,9 @@ Each rule's id is in `RuleIds`.
   Riflemen or Cavalry with Armor's advance, Fanatics or Partisans with Guerrilla Warfare.
 - **Ransom** (`RANSOM_RULE`): an attacker that beats a barbarian leader (a unit of a role above 4) defending is paid
   a × 50 gold, through base-barbarians' `payRansom` (`barbarians:ransom`).
-- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): at sea less than 3 from a city;
-  on land, unless with an escort or within 4 of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
+- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): never while aboard a ship (the
+  original's raiders sleep at sea); at sea otherwise less than 3 from a city; on land, unless with an escort or within 4
+  of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
   The client's `LeadsGroup` (a role above 4) and `LeavesMap` (2 rows from the top or bottom edge, as rows, not scaled)
   rules are `LEADS_GROUP_RULE` and `LEAVES_MAP_RULE`.
 - **Barbarian cities** (`CITY_BUILD_RULE`, `lib/cityBuild`) build one unit: the Legion, or Knights once anyone knows
@@ -67,6 +68,8 @@ Each rule's id is in `RuleIds`.
     (`DEFENDER_REROLLS_RULE`, base-combat-rounds' `defenderRerolls`);
   - barbarian Archers, and the Legion while no person knows Iron Working, defend at half, at least 1 of 8; an attacker
     whose owner has the Great Wall attacks barbarians at double (`BARBARIAN_DEFENDER_RULE`).
+  - The Great Wall counts until it expires, once anyone knows the advance that ends it (civ2-wonder's requirements,
+    through base-wonder's `playerOwnsWonder`).
 
 ## Differences from the original
 
@@ -74,7 +77,8 @@ Each rule's id is in `RuleIds`.
   scales whole eighths as it goes.
 - The original reads the strongest human's government through a power rank used as a civilization number
   (`civs[game.best_human_rank]`); players here have no numbers, so the strongest human's government is read.
-- The leader's departure is checked as the barbarians' turn starts rather than as each moves, and at sea for a leader
-  aboard a ship (the original's wakes when its ship lands); the client lands a horde from up to 8 squares away.
+- The leader's departure is checked as the barbarians' turn starts rather than as each moves. The original's ship wakes
+  its cargo next to land and the leader may then leave at sea; the client lands a horde straight away, from up to 8
+  squares from a city, so a leader leaves only once ashore.
 - The original's barbarian ships give up after 30 turns or with fewer than 2 aboard, and barbarians demand money from a
   person's undefended city (`ai_barb_demand_ransom`): not yet (the client's).

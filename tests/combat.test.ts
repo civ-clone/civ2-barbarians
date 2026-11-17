@@ -13,7 +13,8 @@ import {
 } from '@civ-clone/civ2-unit/Units';
 import { applyCombatModifiers } from '@civ-clone/base-combat-rounds/lib/CombatModifiers';
 import GreatWall from '@civ-clone/base-wonder-great-wall/GreatWall';
-import { IronWorking } from '@civ-clone/civ2-science/Advances';
+import { IronWorking, Metallurgy } from '@civ-clone/civ2-science/Advances';
+import { obsoletedBy } from '@civ-clone/civ2-wonder/Requirements';
 import Palace from '@civ-clone/base-city-improvement-palace/Palace';
 import Player from '@civ-clone/core-player/Player';
 import Unit from '@civ-clone/core-unit/Unit';
@@ -141,5 +142,18 @@ describe('barbarian odds in a game', (): void => {
 
     // Not between civilizations.
     expect(ratio(attacker, guard)).eql([1, 1]);
+
+    // A barbarian attack on the Great Wall's owner is halved, until the Wonder expires: once anyone knows Metallurgy,
+    //  civ2-wonder's requirement (`wonder_get_city` gives no city then).
+    game.requirements.register(...obsoletedBy);
+
+    const defender = unit(Musketman, person, 2, 2);
+
+    expect(ratio(raider, defender)[0]).equal(0.5);
+
+    game.playerResearch.getByPlayer(computer).addAdvance(Metallurgy);
+
+    expect(ratio(raider, defender)[0]).equal(1);
+    expect(ratio(attacker, unit(Warrior, barbarians, 2, 1))[0]).equal(1);
   });
 });

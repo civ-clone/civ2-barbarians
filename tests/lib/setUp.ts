@@ -12,6 +12,7 @@ import CityBuild from '@civ-clone/core-city-build/CityBuild';
 import CityGrowth from '@civ-clone/core-city-growth/CityGrowth';
 import Client from '@civ-clone/core-client/Client';
 import Created from '@civ-clone/core-unit/Rules/Created';
+import Destroyed from '@civ-clone/core-unit/Rules/Destroyed';
 import Effect from '@civ-clone/core-rule/Effect';
 import { Game } from '@civ-clone/core-game';
 import Generator from '@civ-clone/core-world-generator/Generator';
@@ -87,7 +88,8 @@ export class Computer extends AIClient {}
 
 /**
  * A game with civ2-barbarians registered on a map drawn in `rows` (staggered isometric, as Civ2 plays): its players get
- *  a government, a treasury and research when they join, its units are registered when they're made, and have
+ *  a government, a treasury and research when they join, its units are registered when they're made (and
+ *  unregistered when destroyed), and have
  *  civ2-unit's strengths and holds.
  */
 export const setUp = async (
@@ -121,6 +123,12 @@ export const setUp = async (
     new Created(
       new Effect((unit: Unit): void => {
         game.units.register(unit);
+      })
+    ),
+    new Destroyed(
+      new Effect((unit: Unit): void => {
+        unit.setDestroyed();
+        game.units.unregister(unit);
       })
     )
   );

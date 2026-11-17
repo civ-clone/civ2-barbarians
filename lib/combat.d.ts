@@ -29,13 +29,20 @@ export declare const barbarianDefence: (
   defence: number,
   halved: boolean
 ) => number;
-/** Whether `player` has the Great Wall (`civ_has_wonder`: it stands in one of its cities; it never goes out of date here). */
+/**
+ * Whether `player` has the Great Wall (`civ_has_wonder`): it stands in one of its cities and hasn't expired. The
+ *  original finds the Wonder's city through `wonder_get_city` (`city.cpp` 2045), which gives none once anyone knows the
+ *  advance that ends it (Metallurgy, in civ2-wonder's requirements), as base-wonder's `playerOwnsWonder` reads them.
+ */
 export declare const hasGreatWall: (
-  game: Pick<Game, 'wonders'>,
+  game: Pick<Game, 'playerResearch' | 'requirements' | 'wonders'>,
   player: Player
 ) => boolean;
 export type CombatGame = KnowsDependencies &
-  Pick<Game, 'cities' | 'cityImprovements' | 'difficulty' | 'wonders'>;
+  Pick<
+    Game,
+    'cities' | 'cityImprovements' | 'difficulty' | 'requirements' | 'wonders'
+  >;
 /** The terms of a barbarian `attacker`'s attack on `defender`. */
 export declare const barbarianAttack: (
   game: CombatGame,
