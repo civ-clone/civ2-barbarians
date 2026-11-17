@@ -219,4 +219,22 @@ export const seaRaid = (
   return true;
 };
 
+// The turn, by game (its `RuleRegistry`), whose raid found no square.
+const failedRaids = new WeakMap<object, number>();
+
+/** Records that the raid as `turn` (`turn.value()`) starts found no square, so that turn's uprising is skipped. */
+export const raidFailed = (game: Pick<Game, 'rules'>, turn: number): void => {
+  failedRaids.set(game.rules, turn);
+};
+
+/**
+ * Whether the raid as `turn` starts found no square (`game.cpp` 1587: the original returns before the uprising). For
+ *  any rule that raises the turn's uprising, the Classic one or one that takes its place. Kept only for the turn: it
+ *  isn't saved, and nothing needs it after the turn's `Start` rules.
+ */
+export const uprisingSkipped = (
+  game: Pick<Game, 'rules'>,
+  turn: number
+): boolean => failedRaids.get(game.rules) === turn;
+
 export default seaRaid;

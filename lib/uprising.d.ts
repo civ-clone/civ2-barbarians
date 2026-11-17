@@ -3,7 +3,6 @@ import { RanksGame } from './ranks';
 import { BarbarianPlayerGame } from './barbarianPlayer';
 import City from '@civ-clone/core-city/City';
 import { Game } from '@civ-clone/core-game';
-import Government from '@civ-clone/core-government/Government';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 export type UprisingGame = BarbarianPlayerGame &
@@ -33,15 +32,12 @@ export declare const UPRISING_TRIES = 50;
  * - `byRolledCity`: `false` as the original, where each try is centred on, the square must share a land mass with, and
  *   the horde is sized and named by, the city nearest the last try (so possibly a computer player's); `true` for the
  *   city that was drawn, every time;
- * - `dropped`: called with the city drawn when no square is found, which the original says nothing about;
- * - `strongestHumanGovernment`: the government that decides between Partisans and Fanatics once Guerrilla Warfare is
- *   known; the original's reads a power rank as a civilization number (`rankAsNumberGovernment`).
+ * - `dropped`: called with the city drawn when no square is found, which the original says nothing about.
  */
 export type UprisingOptions = {
   xOffset: (roll: number) => number;
   byRolledCity: boolean;
   dropped: ((city: City) => void) | null;
-  strongestHumanGovernment: (game: RanksGame) => Government | null;
 };
 export declare const CLASSIC_UPRISING: UprisingOptions;
 /**
@@ -103,12 +99,12 @@ export declare const uprisingSite: (
   city: City;
 } | null;
 /**
- * What decides an uprising's units, for `city` (the city the horde is sized by).
+ * What decides an uprising's units, for `city` (the city the horde is sized by). The government is the strongest
+ *  human's (`strongestHumanGovernment`; the original reads a power rank as a civilization number there).
  */
 export declare const uprisingKnowledge: (
   game: UprisingGame,
-  city: City,
-  options?: UprisingOptions
+  city: City
 ) => UprisingKnowledge;
 /**
  * An uprising near `city` (`barbarians_city_uprising`, `game.cpp` 1274): with a chance of the city's gold share

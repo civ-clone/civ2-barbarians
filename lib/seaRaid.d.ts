@@ -63,4 +63,18 @@ export declare const seaRaid: (
   activity: number,
   turn: number
 ) => boolean;
+/** Records that the raid as `turn` (`turn.value()`) starts found no square, so that turn's uprising is skipped. */
+export declare const raidFailed: (
+  game: Pick<Game, 'rules'>,
+  turn: number
+) => void;
+/**
+ * Whether the raid as `turn` starts found no square (`game.cpp` 1587: the original returns before the uprising). For
+ *  any rule that raises the turn's uprising, the Classic one or one that takes its place. Kept only for the turn: it
+ *  isn't saved, and nothing needs it after the turn's `Start` rules.
+ */
+export declare const uprisingSkipped: (
+  game: Pick<Game, 'rules'>,
+  turn: number
+) => boolean;
 export default seaRaid;

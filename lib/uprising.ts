@@ -18,9 +18,9 @@ import {
   Industrialization,
 } from '@civ-clone/civ2-science/Advances';
 import { KnowsDependencies, anyoneKnows } from './knows';
-import { RanksGame, rankAsNumberGovernment } from './ranks';
+import { RanksGame, strongestHumanGovernment } from './ranks';
 import barbarianPlayer, { BarbarianPlayerGame } from './barbarianPlayer';
-import { civ2Coordinates, distance, nearestCity, step, tileAt } from './grid';
+import { civ2Coordinates, nearestCity, step, tileAt } from './grid';
 import { Democracy, Republic } from '@civ-clone/civ2-government/Governments';
 import City from '@civ-clone/core-city/City';
 import { Game } from '@civ-clone/core-game';
@@ -65,22 +65,18 @@ export const UPRISING_TRIES = 50;
  * - `byRolledCity`: `false` as the original, where each try is centred on, the square must share a land mass with, and
  *   the horde is sized and named by, the city nearest the last try (so possibly a computer player's); `true` for the
  *   city that was drawn, every time;
- * - `dropped`: called with the city drawn when no square is found, which the original says nothing about;
- * - `strongestHumanGovernment`: the government that decides between Partisans and Fanatics once Guerrilla Warfare is
- *   known; the original's reads a power rank as a civilization number (`rankAsNumberGovernment`).
+ * - `dropped`: called with the city drawn when no square is found, which the original says nothing about.
  */
 export type UprisingOptions = {
   xOffset: (roll: number) => number;
   byRolledCity: boolean;
   dropped: ((city: City) => void) | null;
-  strongestHumanGovernment: (game: RanksGame) => Government | null;
 };
 
 export const CLASSIC_UPRISING: UprisingOptions = {
   xOffset: (roll: number): number => roll * 2 - 6,
   byRolledCity: false,
   dropped: null,
-  strongestHumanGovernment: rankAsNumberGovernment,
 };
 
 /**
@@ -255,11 +251,6 @@ export const uprisingSite = (
 
       if (!options.byRolledCity) {
         target = nearest.city;
-      } else {
-        nearestDistance = Math.min(
-          nearestDistance,
-          distance(tile, city.tile())
-        );
       }
     }
 
@@ -289,16 +280,16 @@ export const uprisingSite = (
 };
 
 /**
- * What decides an uprising's units, for `city` (the city the horde is sized by).
+ * What decides an uprising's units, for `city` (the city the horde is sized by). The government is the strongest
+ *  human's (`strongestHumanGovernment`; the original reads a power rank as a civilization number there).
  */
 export const uprisingKnowledge = (
   game: UprisingGame,
-  city: City,
-  options: UprisingOptions = CLASSIC_UPRISING
+  city: City
 ): UprisingKnowledge => {
   const guerrillaWarfare = anyoneKnows(game, GuerrillaWarfare),
-    government = guerrillaWarfare
-      ? options.strongestHumanGovernment(game)
+    government: Government | null = guerrillaWarfare
+      ? strongestHumanGovernment(game)
       : null;
 
   return {
@@ -350,7 +341,7 @@ export const landUprising = (
       rand
     ),
     swap = rand() % 3 === 0,
-    knows = uprisingKnowledge(game, sizedBy, options),
+    knows = uprisingKnowledge(game, sizedBy),
     [main, alternate] = uprisingTypes(knows, swap),
     player = barbarianPlayer(game, tile.map()),
     units = spawnUnits(
