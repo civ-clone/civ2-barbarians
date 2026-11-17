@@ -34,15 +34,15 @@ Each rule's id is in `RuleIds`.
   Knights once anyone knows Metallurgy (or Chivalry at a = 3), Crusaders instead on an odd row, Dragoons once a person
   knows Tactics. A barbarian ship holds the whole horde (`RAIDERS_ABOARD_RULE`). A raid that finds no square skips that
   turn's uprising (`raidFailed`, `uprisingSkipped`). Emits `barbarians:raiders-at-sea` (player, ship, tile).
-- **Uprisings** (`LAND_UPRISING_RULE`): each turn one standing city is drawn, and only a person's may rise, with a chance
-  of its gold share in 100 (`lib/uprising`). The square is drawn in the original's coordinates round the city, each
-  try re-centred on the city nearest the last, at least 5 from any city, with no civilization's unit next to it, on
+- **Uprisings** (`LAND_UPRISING_RULE`): each turn one standing city is drawn, and only a person's may rise, with a
+  chance of its gold share in 100 (`lib/uprising`). The square is drawn in the original's coordinates round the city,
+  each try re-centred on the city nearest the last, at least 5 from any city, with no civilization's unit next to it, on
   empty land of that city's land mass, in up to a × 50 tries. clamp(rand % size, 2, 99) barbarians rise besides the
-  leader, more at a = 3 after turn 149, sized by the city the search ended on: a leader, then two types in fours, Chariots and Horsemen
-  (swapped one time in 3), then Archers and Elephants, Cannon and Musketeers, Artillery and Riflemen, and Cavalry and
-  Partisans, or Artillery and veteran Fanatics while the strongest human is a Republic or a Democracy and the city is its
-  founder's. Emits `barbarians:uprising` (player, city, tile, industrial). `landUprising` takes `UprisingOptions`
-  (`xOffset`, `byRolledCity`, `dropped`); `CLASSIC_UPRISING` is the original's.
+  leader, more at a = 3 after turn 149, sized by the city the search ended on: a leader, then two types in fours,
+  Chariots and Horsemen (swapped one time in 3), then Archers and Elephants, Cannon and Musketeers, Artillery and
+  Riflemen, and Cavalry and Partisans, or Artillery and veteran Fanatics while the strongest human is a Republic or a
+  Democracy and the city is its founder's. Emits `barbarians:uprising` (player, city, tile, industrial). `landUprising`
+  takes `UprisingOptions` (`xOffset`, `byRolledCity`, `dropped`); `CLASSIC_UPRISING` is the original's.
 - **Huts** (`HUT_HORDE_RULE`, base-goody-hut-barbarians' `Barbarians` rule, which turns civ2-goody-hut's barbarian
   outcome on): below a = 3, nothing before turn 30, or before turn 50 on a coin flip, for a player with a city on the
   hut's land mass within 24 (`lib/hut`). Otherwise one barbarian up to turn 49 (and up to 74 on a coin flip), or one on
