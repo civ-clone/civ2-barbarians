@@ -51,9 +51,9 @@ Each rule's id is in `RuleIds`.
   Riflemen or Cavalry with Armor's advance, Fanatics or Partisans with Guerrilla Warfare.
 - **Ransom** (`RANSOM_RULE`): an attacker that beats a barbarian leader (a unit of a role above 4) defending is paid
   a × 50 gold, through base-barbarians' `payRansom` (`barbarians:ransom`).
-- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): never while asleep aboard a ship
-  (`Stowed`, as a raid's horde starts: the original's raiders sleep at sea); awake at sea, less than 3 from a city; on land, unless with an escort or within 4
-  of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
+- **Leaders leave** (`LEADER_LEAVES_RULE`, as the barbarians' turn starts, `lib/leader`): never while asleep aboard a
+  ship (`Stowed`, as a raid's horde starts: the original's raiders sleep at sea); awake at sea, less than 3 from a city;
+  on land, unless with an escort or within 4 of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
   The client's `LeadsGroup` (a role above 4) and `LeavesMap` (2 rows from the top or bottom edge, as rows, not scaled)
   rules are `LEADS_GROUP_RULE` and `LEAVES_MAP_RULE`.
 - **Barbarian cities** (`CITY_BUILD_RULE`, `lib/cityBuild`) build one unit: the Legion, or Knights once anyone knows
