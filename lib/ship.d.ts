@@ -39,11 +39,16 @@ export declare const countStep: (game: ShipGame, ship: Unit) => void;
 export declare const countTurn: (game: ShipGame, ship: Unit) => number;
 /**
  * Whether a barbarian ship gives up as its turn starts (`ai_barbarian_unit_move`, `ai.cpp` 2192-2203): with nothing but
- *  leaders aboard (`SHIP_LEAST_STACK`), or once its count (`countTurn`) is past `SHIP_STEPS`. The original checks as
- *  each step is taken; here only as the turn starts, so a ship may finish the turn it passes 30 in.
+ *  leaders aboard (`SHIP_LEAST_STACK`), or once its count (`countTurn`) has reached `SHIP_STEPS`, as the original, which
+ *  adds 1 and gives up past 30 on its next call, would on the first step of this turn. The original checks as each step
+ *  is taken; here only as the turn starts, so a ship may finish the turn its count reaches 30 in. Counting changes the
+ *  ship's record: ask once a turn.
  */
 export declare const shipGivesUp: (game: ShipGame, ship: Carrier) => boolean;
-/** Takes `ship` off the map, with whatever it carries, and forgets its record. */
+/**
+ * Takes `ship` off the map and forgets its record. What it carries goes as the rule set's rules for a destroyed ship say
+ *  (lost at sea), as the original's `unit_destroy_redraw` leaves it to the unit's deletion.
+ */
 export declare const giveUp: (game: ShipGame, ship: Carrier) => void;
 /** Forgets the records of ships no longer on the map (sunk, or gone some other way). */
 export declare const forgetLostShips: (game: ShipGame) => void;

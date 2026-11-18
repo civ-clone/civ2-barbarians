@@ -75,14 +75,17 @@ describe('barbarian ships', (): void => {
     // A turn with no step: 1 more.
     expect(countTurn(game, raider)).equal(4);
 
-    for (let step = 4; step < SHIP_STEPS; step++) {
+    for (let step = 4; step < SHIP_STEPS - 1; step++) {
       countStep(game, raider);
     }
 
-    expect(shipCount(game, raider)).equal(SHIP_STEPS);
+    // 29, and a step taken this turn: sails on.
+    expect(shipCount(game, raider)).equal(SHIP_STEPS - 1);
     expect(shipGivesUp(game, raider as any)).false;
 
+    // 30: the original's next call would make it 31, past 30, before the ship moves.
     countStep(game, raider);
+    expect(shipCount(game, raider)).equal(SHIP_STEPS);
     expect(shipGivesUp(game, raider as any)).true;
   });
 
@@ -94,13 +97,30 @@ describe('barbarian ships', (): void => {
     game.rules.process(Moved, raider, null);
 
     expect(shipCount(game, raider)).equal(2);
+
+    // Another player's ship isn't counted.
+    const other = new Trireme(
+      null,
+      new Player(game.rules),
+      raider.tile(),
+      game.rules
+    );
+
+    game.rules.process(Moved, other, null);
+
+    expect(
+      game.pendingEffects
+        .getByHandler(SHIP_AT_SEA)
+        .map((record) => record.target())
+    ).eql([raider]);
   });
 
-  it('are taken off the map with what they carry as the barbarians’ turn starts', async (): Promise<void> => {
+  // What a destroyed ship carries goes as the rule set's `Destroyed` rules say (civ2-unit registers base-unit-lifecycle's
+  //  `destroyed/lose-cargo`); this test's game has none, so only the ship is checked.
+  it('are taken off the map as the barbarians’ turn starts', async (): Promise<void> => {
     const { barbarians, game, ship } = await sea(),
       full = ship(Swordman, Swordman),
-      empty = ship(Diplomat),
-      [leader] = (empty as any).cargo() as Unit[];
+      empty = ship(Diplomat);
 
     game.rules
       .get(TurnStart)
@@ -108,7 +128,6 @@ describe('barbarian ships', (): void => {
       .forEach((rule) => rule.process(barbarians));
 
     expect(empty.destroyed()).true;
-    expect(leader.destroyed()).true;
     expect(full.destroyed()).false;
     expect(
       game.pendingEffects
