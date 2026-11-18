@@ -2,7 +2,7 @@
 // The ids of this package's rules that another package is expected to name, as `civ2-enhanced` does when it takes the
 //  place of one: imported, a rename breaks the other package's build rather than leaving both rules running.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFENDER_REROLLS_RULE = exports.BARBARIAN_DEFENDER_RULE = exports.BARBARIAN_ATTACKER_RULE = exports.RAIDERS_ABOARD_RULE = exports.LEAVES_MAP_RULE = exports.LEADS_GROUP_RULE = exports.LEADER_LEAVES_RULE = exports.CITY_BUILD_RULE = exports.RANSOM_RULE = exports.HUT_HORDE_RULE = exports.LAND_UPRISING_RULE = exports.SEA_RAID_RULE = exports.SPAWNING_RULE = void 0;
+exports.DEFENDER_REROLLS_RULE = exports.BARBARIAN_DEFENDER_RULE = exports.BARBARIAN_ATTACKER_RULE = exports.RAIDERS_ABOARD_RULE = exports.LEAVES_MAP_RULE = exports.LEADS_GROUP_RULE = exports.SHIP_COUNTS_STEPS_RULE = exports.SHIP_GIVES_UP_RULE = exports.LEADER_LEAVES_RULE = exports.CITY_BUILD_RULE = exports.RANSOM_RULE = exports.HUT_HORDE_RULE = exports.LAND_UPRISING_RULE = exports.SEA_RAID_RULE = exports.SPAWNING_RULE = void 0;
 /** Whether barbarians may appear this turn: from the onset turn for the activity level and the difficulty level. */
 exports.SPAWNING_RULE = 'civ2-barbarians:spawning/onset';
 /** A raiding ship and its horde, every 8 or 16 turns, until anyone can build the unit Armor's advance gives. */
@@ -17,6 +17,10 @@ exports.RANSOM_RULE = 'civ2-barbarians:unit/defeated/ransom';
 exports.CITY_BUILD_RULE = 'civ2-barbarians:city/build/units-only';
 /** A leader left on his own far from any city, or at sea near one, leaves. */
 exports.LEADER_LEAVES_RULE = 'civ2-barbarians:player/turn-start/leader-leaves';
+/** A barbarian ship with nothing but leaders aboard, or whose count of steps has passed 30, gives up. */
+exports.SHIP_GIVES_UP_RULE = 'civ2-barbarians:player/turn-start/ship-gives-up';
+/** Each step a barbarian ship takes is counted towards its giving up. */
+exports.SHIP_COUNTS_STEPS_RULE = 'civ2-barbarians:unit/moved/ship-counts-steps';
 /** The barbarians' leader is their unit of a role above the transports' (the Diplomat). */
 exports.LEADS_GROUP_RULE = 'civ2-barbarians:leads-group/role';
 /** A barbarian within 2 rows of the top or bottom edge leaves the map. */

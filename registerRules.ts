@@ -15,6 +15,7 @@ import spawning from './Rules/Spawning';
 import turnStart from './Rules/Turn/start';
 import unitCombat from './Rules/Unit/combat';
 import unitDefeated from './Rules/Unit/defeated';
+import unitMoved from './Rules/Unit/moved';
 import unitYield from './Rules/Unit/yield';
 
 export const register = (game: Game): void => {
@@ -24,6 +25,7 @@ export const register = (game: Game): void => {
     ...turnStart(game),
     ...goodyHutBarbarians(game),
     ...unitDefeated(game),
+    ...unitMoved(game),
     ...cityBuild(game),
     ...playerTurnStart(game),
     ...client(),

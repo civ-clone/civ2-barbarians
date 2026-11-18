@@ -56,6 +56,14 @@ Each rule's id is in `RuleIds`.
   on land, unless with an escort or within 4 of a fighting unit to follow, once (turn & 7) + 4 or more from any city.
   The client's `LeadsGroup` (a role above 4) and `LeavesMap` (2 rows from the top or bottom edge, as rows, not scaled)
   rules are `LEADS_GROUP_RULE` and `LEAVES_MAP_RULE`.
+- **Ships give up** (`SHIP_GIVES_UP_RULE`, as the barbarians' turn starts, `lib/ship`; `ai_barbarian_unit_move`,
+  `ai.cpp` 2192-2203): a ship with nothing but leaders aboard (fewer than 2 on its square, itself counted, the
+  diplomacy role not: a ship whose horde has landed), or one whose count has passed 30, is taken off the map with
+  what it carries lost at sea. The original raises the count each time its AI moves the ship: once for each step
+  (`SHIP_COUNTS_STEPS_RULE`, every action of the ship's own) and once on a turn it takes none. The count is kept as a
+  `PendingEffect` (`SHIP_AT_SEA`), so a saved game counts on. The original adds 1 and gives up past 30 as each step is
+  taken; here a count of 30 gives up as the turn starts, so a ship may finish the turn it reaches 30 in. A horde lands from up to 8 squares from a city (the
+  original's `nearest_city_dist < 9`), as the client's `LANDING_DISTANCE` already has it.
 - **Barbarian cities** (`CITY_BUILD_RULE`, `lib/cityBuild`) build one unit: the Legion, or Knights once anyone knows
   Explosives, when not building a unit (Settlers count as none); otherwise the unit they build, upgraded to the unit of
   the same role its obsoleting advance gives once two players know that advance and a person does (or from Emperor up),
@@ -80,5 +88,7 @@ Each rule's id is in `RuleIds`.
 - The leader's departure is checked as the barbarians' turn starts rather than as each moves. The original's ship wakes
   its cargo next to land, and an awake leader at sea leaves near a city; the client lands a horde straight away, from up
   to 8 squares from a city, so a leader woken but left aboard (his escorts landed) leaves that way.
-- The original's barbarian ships give up after 30 turns or with fewer than 2 aboard, and barbarians demand money from a
-  person's undefended city (`ai_barb_demand_ransom`): not yet (the client's).
+- A ship's giving up is checked as the barbarians' turn starts, not as it moves (above). The original also starts a
+  sea transport's count again at `turn & 7` when its goto has nowhere to go, reaches its goal or a move fails
+  (`unit.cpp` 1847-1870, `unit_move.cpp` 1117-1122); the client's ships have no such goto, so the count only rises. Barbarians demanding money
+  from a person's undefended city (`ai_barb_demand_ransom`) needs a person to be asked: not yet.
