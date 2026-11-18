@@ -2,7 +2,14 @@ import { LeaderGame, leaderLeaves, leadersOf } from '../../lib/leader';
 import Criterion from '@civ-clone/core-rule/Criterion';
 import Effect from '@civ-clone/core-rule/Effect';
 import { Game } from '@civ-clone/core-game';
-import { LEADER_LEAVES_RULE } from '../../RuleIds';
+import { LEADER_LEAVES_RULE, SHIP_GIVES_UP_RULE } from '../../RuleIds';
+import {
+  ShipGame,
+  forgetLostShips,
+  giveUp,
+  shipGivesUp,
+  shipsOf,
+} from '../../lib/ship';
 import Player from '@civ-clone/core-player/Player';
 import TurnStart from '@civ-clone/core-player/Rules/TurnStart';
 import Unit from '@civ-clone/core-unit/Unit';
@@ -15,7 +22,7 @@ import isBarbarian from '@civ-clone/base-civilization-barbarian/isBarbarian';
  *  walks a leader to the unit he follows.
  */
 export const getRules = (
-  game: LeaderGame & Pick<Game, 'turn'>
+  game: LeaderGame & ShipGame & Pick<Game, 'turn'>
 ): TurnStart[] => [
   new TurnStart(
     LEADER_LEAVES_RULE,
@@ -27,6 +34,18 @@ export const getRules = (
         )
         .forEach((leader: Unit): void => leader.destroy())
     )
+  ),
+  // And each ship that `shipGivesUp` says gives up (fewer than 2 aboard, or more than 30 turns at sea) is taken off
+  //  the map with whatever it carries, as the original does as the ship moves.
+  new TurnStart(
+    SHIP_GIVES_UP_RULE,
+    new Criterion((player: Player): boolean => isBarbarian(player)),
+    new Effect((player: Player): void => {
+      forgetLostShips(game);
+      shipsOf(game, player)
+        .filter((ship) => shipGivesUp(game, ship, game.turn.value()))
+        .forEach((ship) => giveUp(game, ship));
+    })
   ),
 ];
 

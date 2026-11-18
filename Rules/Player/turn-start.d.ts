@@ -1,5 +1,6 @@
 import { LeaderGame } from '../../lib/leader';
 import { Game } from '@civ-clone/core-game';
+import { ShipGame } from '../../lib/ship';
 import TurnStart from '@civ-clone/core-player/Rules/TurnStart';
 /**
  * As the barbarians' turn starts, before their client moves them, each leader that `leaderLeaves` says leaves is taken
@@ -8,6 +9,6 @@ import TurnStart from '@civ-clone/core-player/Rules/TurnStart';
  *  walks a leader to the unit he follows.
  */
 export declare const getRules: (
-  game: LeaderGame & Pick<Game, 'turn'>
+  game: LeaderGame & ShipGame & Pick<Game, 'turn'>
 ) => TurnStart[];
 export default getRules;
