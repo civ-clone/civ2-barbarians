@@ -7,8 +7,12 @@ import { roleOf } from './units';
 
 export type ShipGame = Pick<Game, 'pendingEffects' | 'units'>;
 
-/** A barbarian ship gives up after this many of its turns at sea (`ai_barbarian_unit_move`: `30 < counter`). */
-export const SHIP_TURNS = 30;
+/**
+ * A barbarian ship gives up once its count passes this (`ai_barbarian_unit_move`: `30 < counter`). The original raises
+ *  the count each time its AI moves the ship, so once for each step it takes (and once on a turn it takes none): about
+ *  a third as many turns as steps for a ship of 3 moves.
+ */
+export const SHIP_STEPS = 30;
 
 /**
  * A barbarian ship gives up when fewer than this many units are on its square, itself included and the diplomacy role's
@@ -21,8 +25,8 @@ export const SHIP_LEAST_STACK = 2;
 export const DIPLOMACY_ROLE = 6;
 
 /**
- * The `PendingEffect` handler a barbarian ship's first turn is kept under, so a saved game counts on. Nothing
- *  discharges it: it's a record, removed with the ship.
+ * The `PendingEffect` handler a barbarian ship's count is kept under (`count`, and whether it has acted this turn,
+ *  `acted`), so a saved game counts on. Nothing discharges it: it's a record, removed with the ship.
  */
 export const SHIP_AT_SEA = 'civ2-barbarians:ship-at-sea';
 
@@ -44,44 +48,70 @@ const recordOf = (game: ShipGame, ship: Unit): PendingEffect | null =>
     .getByHandler(SHIP_AT_SEA)
     .find((record: PendingEffect): boolean => record.target() === ship) ?? null;
 
-/**
- * Counts one more of `ship`'s turns at sea, as of `turn`, and returns how many it has had (the original's
- *  `units[].counter`, raised as the ship moves): 1 on its first.
- */
-export const countTurnAtSea = (
-  game: ShipGame,
-  ship: Unit,
-  turn: number
-): number => {
+const recordFor = (game: ShipGame, ship: Unit): PendingEffect => {
   const record = recordOf(game, ship);
 
-  if (record === null) {
-    game.pendingEffects.register(
-      new PendingEffect(SHIP_AT_SEA, ship, { since: String(turn) })
-    );
-
-    return 1;
+  if (record !== null) {
+    return record;
   }
 
-  return turn - Number(record.data().since) + 1;
+  const created = new PendingEffect(SHIP_AT_SEA, ship, {
+    count: '0',
+    acted: '0',
+  });
+
+  game.pendingEffects.register(created);
+
+  return created;
+};
+
+/** `ship`'s count so far: 0 before it has been counted. */
+export const shipCount = (game: ShipGame, ship: Unit): number =>
+  Number(recordOf(game, ship)?.data().count ?? 0);
+
+/** Counts a step `ship` took (any action of its own, as each is a call of the original's `ai_barbarian_unit_move`). */
+export const countStep = (game: ShipGame, ship: Unit): void => {
+  const record = recordFor(game, ship);
+
+  record.setData({ count: String(shipCount(game, ship) + 1), acted: '1' });
 };
 
 /**
- * Whether a barbarian ship gives up this turn (`ai_barbarian_unit_move`, `ai.cpp` 2192-2203): with nothing but leaders
- *  aboard (`SHIP_LEAST_STACK`), or once it has been at sea more than 30 of its turns. The original destroys it there
- *  and then.
+ * As the barbarians' turn starts: a ship that took no step last turn is counted once for it, as the original's AI is
+ *  still called for it once; then a new turn's steps are awaited. A ship seen for the first time starts at 0.
  */
-export const shipGivesUp = (
-  game: ShipGame,
-  ship: Carrier,
-  turn: number
-): boolean =>
-  game.units
-    .getByTile(ship.tile())
-    .filter(
-      (unit: Unit): boolean => roleOf(unit.constructor) !== DIPLOMACY_ROLE
-    ).length < SHIP_LEAST_STACK ||
-  countTurnAtSea(game, ship, turn) > SHIP_TURNS;
+export const countTurn = (game: ShipGame, ship: Unit): number => {
+  const existing = recordOf(game, ship);
+
+  if (existing === null) {
+    recordFor(game, ship);
+
+    return 0;
+  }
+
+  const count = shipCount(game, ship) + (existing.data().acted === '1' ? 0 : 1);
+
+  existing.setData({ count: String(count), acted: '0' });
+
+  return count;
+};
+
+/**
+ * Whether a barbarian ship gives up as its turn starts (`ai_barbarian_unit_move`, `ai.cpp` 2192-2203): with nothing but
+ *  leaders aboard (`SHIP_LEAST_STACK`), or once its count (`countTurn`) is past `SHIP_STEPS`. The original checks as
+ *  each step is taken; here only as the turn starts, so a ship may finish the turn it passes 30 in.
+ */
+export const shipGivesUp = (game: ShipGame, ship: Carrier): boolean => {
+  const count = countTurn(game, ship);
+
+  return (
+    game.units
+      .getByTile(ship.tile())
+      .filter(
+        (unit: Unit): boolean => roleOf(unit.constructor) !== DIPLOMACY_ROLE
+      ).length < SHIP_LEAST_STACK || count > SHIP_STEPS
+  );
+};
 
 /** Takes `ship` off the map, with whatever it carries, and forgets its record. */
 export const giveUp = (game: ShipGame, ship: Carrier): void => {

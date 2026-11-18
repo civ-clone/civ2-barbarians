@@ -58,9 +58,11 @@ Each rule's id is in `RuleIds`.
   rules are `LEADS_GROUP_RULE` and `LEAVES_MAP_RULE`.
 - **Ships give up** (`SHIP_GIVES_UP_RULE`, as the barbarians' turn starts, `lib/ship`; `ai_barbarian_unit_move`,
   `ai.cpp` 2192-2203): a ship with nothing but leaders aboard (fewer than 2 on its square, itself counted, the
-  diplomacy role not: a ship whose horde has landed), or one at
-  sea more than 30 of its turns, is taken off the map with whatever it carries. Its first turn is kept as a
-  `PendingEffect` (`SHIP_AT_SEA`), so a saved game counts on. A horde lands from up to 8 squares from a city (the
+  diplomacy role not: a ship whose horde has landed), or one whose count has passed 30, is taken off the map with
+  whatever it carries. The original raises the count each time its AI moves the ship: once for each step
+  (`SHIP_COUNTS_STEPS_RULE`, every action of the ship's own) and once on a turn it takes none. The count is kept as a
+  `PendingEffect` (`SHIP_AT_SEA`), so a saved game counts on. The original checks as each step is taken; here as the
+  turn starts, so a ship may finish the turn it passes 30 in. A horde lands from up to 8 squares from a city (the
   original's `nearest_city_dist < 9`), as the client's `LANDING_DISTANCE` already has it.
 - **Barbarian cities** (`CITY_BUILD_RULE`, `lib/cityBuild`) build one unit: the Legion, or Knights once anyone knows
   Explosives, when not building a unit (Settlers count as none); otherwise the unit they build, upgraded to the unit of

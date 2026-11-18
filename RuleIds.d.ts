@@ -15,9 +15,12 @@ export declare const CITY_BUILD_RULE = 'civ2-barbarians:city/build/units-only';
 /** A leader left on his own far from any city, or at sea near one, leaves. */
 export declare const LEADER_LEAVES_RULE =
   'civ2-barbarians:player/turn-start/leader-leaves';
-/** A barbarian ship with fewer than 2 aboard, or at sea more than 30 turns, gives up. */
+/** A barbarian ship with nothing but leaders aboard, or whose count of steps has passed 30, gives up. */
 export declare const SHIP_GIVES_UP_RULE =
   'civ2-barbarians:player/turn-start/ship-gives-up';
+/** Each step a barbarian ship takes is counted towards its giving up. */
+export declare const SHIP_COUNTS_STEPS_RULE =
+  'civ2-barbarians:unit/moved/ship-counts-steps';
 /** The barbarians' leader is their unit of a role above the transports' (the Diplomat). */
 export declare const LEADS_GROUP_RULE = 'civ2-barbarians:leads-group/role';
 /** A barbarian within 2 rows of the top or bottom edge leaves the map. */

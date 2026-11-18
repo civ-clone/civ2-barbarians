@@ -1,13 +1,16 @@
 import { Diplomat, Swordman, Trireme } from '@civ-clone/civ2-unit/Units';
 import {
   SHIP_AT_SEA,
-  SHIP_TURNS,
-  countTurnAtSea,
+  SHIP_STEPS,
+  countStep,
+  countTurn,
+  shipCount,
   shipGivesUp,
 } from '../lib/ship';
 import NavalTransport from '@civ-clone/base-unit-type-naval-transport/NavalTransport';
 import Player from '@civ-clone/core-player/Player';
 import { SHIP_GIVES_UP_RULE } from '../RuleIds';
+import Moved from '@civ-clone/core-unit/Rules/Moved';
 import TurnStart from '@civ-clone/core-player/Rules/TurnStart';
 import Unit from '@civ-clone/core-unit/Unit';
 import barbarianPlayer from '../lib/barbarianPlayer';
@@ -50,19 +53,47 @@ describe('barbarian ships', (): void => {
       two = await sea(),
       three = await sea();
 
-    expect(shipGivesUp(one.game, one.ship(Swordman, Diplomat) as any, 1)).false;
-    expect(shipGivesUp(two.game, two.ship(Diplomat) as any, 1)).true;
-    expect(shipGivesUp(three.game, three.ship() as any, 1)).true;
+    expect(shipGivesUp(one.game, one.ship(Swordman, Diplomat) as any)).false;
+    expect(shipGivesUp(two.game, two.ship(Diplomat) as any)).true;
+    expect(shipGivesUp(three.game, three.ship() as any)).true;
   });
 
-  it(`give up after ${SHIP_TURNS} of their turns at sea, counting from the first, and keep the count in a saved record`, async (): Promise<void> => {
+  it(`give up once their count passes ${SHIP_STEPS}: one for each step, and one for a turn with none`, async (): Promise<void> => {
     const { game, ship } = await sea(),
       raider = ship(Swordman, Swordman, Diplomat);
 
-    expect(countTurnAtSea(game, raider, 100)).equal(1);
+    // Seen first as a turn starts: 0.
+    expect(countTurn(game, raider)).equal(0);
     expect(game.pendingEffects.getByHandler(SHIP_AT_SEA)).length(1);
-    expect(shipGivesUp(game, raider as any, 129)).false;
-    expect(shipGivesUp(game, raider as any, 130)).true;
+
+    // Three steps in its first turn: 3, and the next turn adds nothing for them.
+    countStep(game, raider);
+    countStep(game, raider);
+    countStep(game, raider);
+    expect(countTurn(game, raider)).equal(3);
+
+    // A turn with no step: 1 more.
+    expect(countTurn(game, raider)).equal(4);
+
+    for (let step = 4; step < SHIP_STEPS; step++) {
+      countStep(game, raider);
+    }
+
+    expect(shipCount(game, raider)).equal(SHIP_STEPS);
+    expect(shipGivesUp(game, raider as any)).false;
+
+    countStep(game, raider);
+    expect(shipGivesUp(game, raider as any)).true;
+  });
+
+  it("count a barbarian ship's steps through its moves (`Moved`), not another player's", async (): Promise<void> => {
+    const { game, ship } = await sea(),
+      raider = ship(Swordman, Swordman);
+
+    game.rules.process(Moved, raider, null);
+    game.rules.process(Moved, raider, null);
+
+    expect(shipCount(game, raider)).equal(2);
   });
 
   it('are taken off the map with what they carry as the barbarians’ turn starts', async (): Promise<void> => {

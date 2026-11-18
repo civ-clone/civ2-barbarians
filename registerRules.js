@@ -13,9 +13,10 @@ const Spawning_1 = require("./Rules/Spawning");
 const start_1 = require("./Rules/Turn/start");
 const combat_1 = require("./Rules/Unit/combat");
 const defeated_1 = require("./Rules/Unit/defeated");
+const moved_1 = require("./Rules/Unit/moved");
 const yield_1 = require("./Rules/Unit/yield");
 const register = (game) => {
-    game.rules.register(...(0, activityLevels_1.default)(), ...(0, Spawning_1.default)(game), ...(0, start_1.default)(game), ...(0, barbarians_1.default)(game), ...(0, defeated_1.default)(game), ...(0, build_1.default)(game), ...(0, turn_start_1.default)(game), ...(0, client_1.default)(), ...(0, yield_1.default)(), ...(0, combat_1.default)(game));
+    game.rules.register(...(0, activityLevels_1.default)(), ...(0, Spawning_1.default)(game), ...(0, start_1.default)(game), ...(0, barbarians_1.default)(game), ...(0, defeated_1.default)(game), ...(0, moved_1.default)(game), ...(0, build_1.default)(game), ...(0, turn_start_1.default)(game), ...(0, client_1.default)(), ...(0, yield_1.default)(), ...(0, combat_1.default)(game));
     // How active the barbarians are: a choice saved with the game, the second level up to start with.
     game.ruleSets.register(new RuleSet_1.default(RuleSets_1.ACTIVITY, { exclusive: true, default: RuleSets_1.ACTIVITY_DEFAULT }, ...RuleSets_1.ACTIVITY_LEVELS, RuleSets_1.ACTIVITY_RANDOM));
 };

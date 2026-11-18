@@ -35,15 +35,15 @@ export const getRules = (
         .forEach((leader: Unit): void => leader.destroy())
     )
   ),
-  // And each ship that `shipGivesUp` says gives up (fewer than 2 aboard, or more than 30 turns at sea) is taken off
-  //  the map with whatever it carries, as the original does as the ship moves.
+  // And each ship that `shipGivesUp` says gives up (nothing but leaders aboard, or its count of steps past 30) is
+  //  taken off the map with whatever it carries, as the original does as the ship moves.
   new TurnStart(
     SHIP_GIVES_UP_RULE,
     new Criterion((player: Player): boolean => isBarbarian(player)),
     new Effect((player: Player): void => {
       forgetLostShips(game);
       shipsOf(game, player)
-        .filter((ship) => shipGivesUp(game, ship, game.turn.value()))
+        .filter((ship) => shipGivesUp(game, ship))
         .forEach((ship) => giveUp(game, ship));
     })
   ),
