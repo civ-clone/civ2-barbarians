@@ -6,7 +6,8 @@ import Strength from '@civ-clone/core-unit/Rules/Strength';
  *  priority, as the original applies them to the strengths `unit_defense_strength` gave):
  * - a barbarian attacker (`barbarianAttackFactor`), and a city that rolls again on each round it loses
  *   (`defenderRerolls`, a `CombatModifiers` rule: the city's own firepower changes come first);
- * - a barbarian defender (`barbarianDefence`), and ×2 for an attacker whose owner has the Great Wall.
+ * - a barbarian defender (`barbarianDefence`), and ×2 for an attacker whose owner has the Great Wall
+ *   (`GREAT_WALL_ATTACK_MULTIPLIER`).
  */
 export declare const getRules: (
   game: CombatGame
