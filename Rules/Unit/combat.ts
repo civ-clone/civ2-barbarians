@@ -6,6 +6,9 @@ import {
 } from '../../RuleIds';
 import {
   CombatGame,
+  GREAT_WALL_ATTACK_MULTIPLIER,
+  GREAT_WALL_BARBARIAN_ATTACK,
+  PALACE_BARBARIAN_ATTACK,
   barbarianAttack,
   barbarianAttackFactor,
   barbarianDefence,
@@ -17,8 +20,11 @@ import CombatModifiers, {
   CombatTerms,
 } from '@civ-clone/base-combat-rounds/lib/CombatModifiers';
 import Criterion from '@civ-clone/core-rule/Criterion';
+import Description from '@civ-clone/core-rule/Description';
 import Effect from '@civ-clone/core-rule/Effect';
+import GreatWall from '@civ-clone/base-wonder-great-wall/GreatWall';
 import Low from '@civ-clone/core-rule/Priorities/Low';
+import Palace from '@civ-clone/base-city-improvement-palace/Palace';
 import Strength from '@civ-clone/core-unit/Rules/Strength';
 import Unit from '@civ-clone/core-unit/Unit';
 import isBarbarian from '@civ-clone/base-civilization-barbarian/isBarbarian';
@@ -28,7 +34,8 @@ import isBarbarian from '@civ-clone/base-civilization-barbarian/isBarbarian';
  *  priority, as the original applies them to the strengths `unit_defense_strength` gave):
  * - a barbarian attacker (`barbarianAttackFactor`), and a city that rolls again on each round it loses
  *   (`defenderRerolls`, a `CombatModifiers` rule: the city's own firepower changes come first);
- * - a barbarian defender (`barbarianDefence`), and ×2 for an attacker whose owner has the Great Wall.
+ * - a barbarian defender (`barbarianDefence`), and ×2 for an attacker whose owner has the Great Wall
+ *   (`GREAT_WALL_ATTACK_MULTIPLIER`).
  */
 export const getRules = (game: CombatGame): (Strength | CombatModifiers)[] => [
   new Strength(
@@ -49,6 +56,19 @@ export const getRules = (game: CombatGame): (Strength | CombatModifiers)[] => [
         const factor = barbarianAttackFactor(barbarianAttack(game, defender));
 
         attack.add(attack.value() * (factor - 1), 'Barbarians');
+      }
+    ),
+    new Description(
+      {
+        type: 'barbarian_attack',
+        subject: Palace,
+        value: PALACE_BARBARIAN_ATTACK,
+      },
+      {
+        type: 'barbarian_attack',
+        subject: GreatWall,
+        value: GREAT_WALL_BARBARIAN_ATTACK,
+        scope: 'player',
       }
     )
   ),
@@ -74,10 +94,19 @@ export const getRules = (game: CombatGame): (Strength | CombatModifiers)[] => [
         }
 
         if (hasGreatWall(game, attacker.player())) {
-          attack.add(attack.value(), 'GreatWall');
+          attack.add(
+            attack.value() * (GREAT_WALL_ATTACK_MULTIPLIER - 1),
+            'GreatWall'
+          );
         }
       }
-    )
+    ),
+    new Description({
+      type: 'attack_multiplier',
+      subject: GreatWall,
+      value: GREAT_WALL_ATTACK_MULTIPLIER,
+      against: 'barbarians',
+    })
   ),
   new CombatModifiers(
     DEFENDER_REROLLS_RULE,
@@ -94,7 +123,9 @@ export const getRules = (game: CombatGame): (Strength | CombatModifiers)[] => [
         ...terms,
         defenderRerolls: true,
       })
-    )
+    ),
+    // Fewer than 8 cities lets a city roll again too, but that belongs to no improvement.
+    new Description({ type: 'barbarian_defender_rerolls', subject: Palace })
   ),
 ];
 

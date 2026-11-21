@@ -20,6 +20,15 @@ import { playerOwnsWonder } from '@civ-clone/base-wonder/lib/hasWonder';
 /** The smallest defence a halved barbarian defender keeps: 1 step of 8 (`defense2 < 2` gives 1). */
 export const MINIMUM_DEFENCE = 1 / 8;
 
+/** What a barbarian attack on a city with a Palace is multiplied by. */
+export const PALACE_BARBARIAN_ATTACK = 1 / 2;
+
+/** What a barbarian attack on a unit of the Great Wall's owner is multiplied by, wherever it stands. */
+export const GREAT_WALL_BARBARIAN_ATTACK = 1 / 2;
+
+/** What the attack of a unit of the Great Wall's owner is multiplied by against a barbarian defender. */
+export const GREAT_WALL_ATTACK_MULTIPLIER = 2;
+
 /** A barbarian attack's terms against a defender. */
 export type BarbarianAttack = {
   // A person plays the defender.
@@ -38,8 +47,8 @@ export type BarbarianAttack = {
 
 /**
  * What a barbarian's attack is multiplied by: ½ against a computer player, (level + 1) ÷ 4 against a person; in a
- *  city, 0 while its owner has fewer than 2 cities, and ½ with a Palace there; ½ again when the defender's owner has the
- *  Great Wall, wherever the defender stands.
+ *  city, 0 while its owner has fewer than 2 cities, and ½ with a Palace there (`PALACE_BARBARIAN_ATTACK`); ½ again when
+ *  the defender's owner has the Great Wall (`GREAT_WALL_BARBARIAN_ATTACK`), wherever the defender stands.
  */
 export const barbarianAttackFactor = (terms: BarbarianAttack): number => {
   let factor = terms.defenderHuman ? (terms.level + 1) / 4 : 1 / 2;
@@ -50,12 +59,12 @@ export const barbarianAttackFactor = (terms: BarbarianAttack): number => {
     }
 
     if (terms.palace) {
-      factor /= 2;
+      factor *= PALACE_BARBARIAN_ATTACK;
     }
   }
 
   if (terms.greatWall) {
-    factor /= 2;
+    factor *= GREAT_WALL_BARBARIAN_ATTACK;
   }
 
   return factor;
