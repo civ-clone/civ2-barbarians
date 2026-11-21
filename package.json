@@ -1,6 +1,6 @@
 {
   "name": "@civ-clone/civ2-barbarians",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Civilization II's barbarians: raids from the sea, uprisings near cities, huts, leaders and ransom, and their odds in battle.",
   "main": "index.js",
   "repository": "git@github.com:civ-clone/civ2-barbarians.git",
